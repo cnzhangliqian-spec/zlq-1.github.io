@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>艾宾浩斯学习计划表格生成器</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            overflow: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        
+        .description {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .input-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .preview-section {
+            flex: 2;
+            min-width: 400px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: vertical;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        
+        textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .file-upload {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .file-upload label {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .file-upload label:hover {
+            background: #2980b9;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .generate-btn {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .generate-btn:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+        }
+        
+        .download-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .download-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .download-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tr:hover {
+            background-color: #e8f4fc;
+        }
+        
+        .new-item {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        
+        .review-item {
+            background-color: #2ecc71;
+            color: white;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .legend {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .legend-new {
+            background-color: #3498db;
+        }
+        
+        .legend-review {
+            background-color: #2ecc71;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eaeaea;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .share-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .share-link {
+            background: #f8f9fa;
+            border: 1px dashed #3498db;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            word-break: break-all;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .input-section, .preview-section {
+                min-width: 100%;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>艾宾浩斯学习计划表格生成器</h1>
+            <p class="subtitle">基于艾宾浩斯遗忘曲线，科学安排复习时间</p>
+            <div class="description">
+                <p><strong>艾宾浩斯学习法：</strong> 每一项学习内容需要在第1、2、4、7、15、30天进行复习，以对抗遗忘曲线，实现长期记忆。</p>
+                <p><strong>学习规则：</strong> 每天只学习一项新内容，并复习之前学习过的内容。</p>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="card">
+                    <h2>输入学习内容</h2>
+                    <p>在下方输入您的学习内容，每行一项：</p>
+                    <textarea id="contentInput" placeholder="例如：
+英语单词 Unit 1
+数学公式 - 三角函数
+历史事件 - 法国大革命
+编程概念 - 面向对象编程"></textarea>
+                    
+                    <div class="file-upload">
+                        <input type="file" id="fileInput" accept=".txt">
+                        <label for="fileInput">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                            </svg>
+                            上传文本文件
+                        </label>
+                        <span id="fileName">未选择文件</span>
+                    </div>
+                    
+                    <div class="buttons">
+                        <button class="generate-btn" id="generateBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            生成学习计划
+                        </button>
+                        <button class="download-btn" id="downloadBtn" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            下载为图片
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>使用说明</h2>
+                    <ol style="padding-left: 20px; margin-top: 10px;">
+                        <li>在文本框中输入学习内容，每行一项</li>
+                        <li>或点击"上传文本文件"上传包含学习内容的TXT文件</li>
+                        <li>点击"生成学习计划"按钮创建表格</li>
+                        <li>表格生成后，点击"下载为图片"保存学习计划</li>
+                    </ol>
+                    
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color legend-new"></div>
+                            <span>新学内容</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-review"></div>
+                            <span>复习内容</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card share-section">
+                    <h2>分享给学生</h2>
+                    <p>复制下方链接分享给学生：</p>
+                    <div class="share-link" id="shareLink">
+                        <!-- 链接将在这里显示 -->
+                    </div>
+                    <button id="copyLinkBtn" style="margin-top: 10px; background: #9b59b6; color: white;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                        </svg>
+                        复制链接
+                    </button>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <div class="card">
+                    <h2>学习计划预览</h2>
+                    <div id="tableContainer">
+                        <div class="no-data" id="noDataMessage">
+                            请先输入学习内容并点击"生成学习计划"
+                        </div>
+                        <table id="scheduleTable" style="display: none;"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>艾宾浩斯学习计划表格生成器 &copy; 2023 | 基于艾宾浩斯遗忘曲线设计</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const contentInput = document.getElementById('contentInput');
+            const fileInput = document.getElementById('fileInput');
+            const fileName = document.getElementById('fileName');
+            const generateBtn = document.getElementById('generateBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const noDataMessage = document.getElementById('noDataMessage');
+            const scheduleTable = document.getElementById('scheduleTable');
+            const tableContainer = document.getElementById('tableContainer');
+            const shareLink = document.getElementById('shareLink');
+            const copyLinkBtn = document.getElementById('copyLinkBtn');
+            
+            // 设置分享链接
+            shareLink.textContent = window.location.href;
+            
+            // 复制链接功能
+            copyLinkBtn.addEventListener('click', function() {
+                navigator.clipboard.writeText(window.location.href)
+                    .then(() => {
+                        const originalText = copyLinkBtn.innerHTML;
+                        copyLinkBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/></svg> 已复制';
+                        setTimeout(() => {
+                            copyLinkBtn.innerHTML = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('复制失败: ', err);
+                        alert('复制失败，请手动复制链接');
+                    });
+            });
+            
+            // 文件上传处理
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    fileName.textContent = file.name;
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        contentInput.value = e.target.result;
+                    };
+                    reader.readAsText(file);
+                } else {
+                    fileName.textContent = '未选择文件';
+                }
+            });
+            
+            // 生成学习计划
+            generateBtn.addEventListener('click', function() {
+                const content = contentInput.value.trim();
+                if (!content) {
+                    alert('请输入学习内容！');
+                    return;
+                }
+                
+                const items = content.split('\n').filter(item => item.trim() !== '');
+                if (items.length === 0) {
+                    alert('请输入有效的学习内容！');
+                    return;
+                }
+                
+                generateScheduleTable(items);
+                downloadBtn.disabled = false;
+            });
+            
+            // 下载为图片
+            downloadBtn.addEventListener('click', function() {
+                html2canvas(tableContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = '艾宾浩斯学习计划表.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+            
+            // 生成表格函数 - 更新为新的学习规则
+            function generateScheduleTable(items) {
+                // 清空表格
+                scheduleTable.innerHTML = '';
+                noDataMessage.style.display = 'none';
+                scheduleTable.style.display = 'table';
+                
+                // 艾宾浩斯复习天数
+                const reviewDays = [1, 2, 4, 7, 15, 30];
+                const totalDays = items.length + 30; // 总天数 = 学习内容数量 + 30天复习期
+                
+                // 创建表头
+                const headerRow = document.createElement('tr');
+                const dayHeader = document.createElement('th');
+                dayHeader.textContent = '日期';
+                headerRow.appendChild(dayHeader);
+                
+                const newContentHeader = document.createElement('th');
+                newContentHeader.textContent = '新学内容';
+                headerRow.appendChild(newContentHeader);
+                
+                const reviewContentHeader = document.createElement('th');
+                reviewContentHeader.textContent = '复习内容';
+                headerRow.appendChild(reviewContentHeader);
+                
+                scheduleTable.appendChild(headerRow);
+                
+                // 创建数据行
+                for (let day = 1; day <= totalDays; day++) {
+                    const row = document.createElement('tr');
+                    
+                    // 日期单元格
+                    const dayCell = document.createElement('td');
+                    dayCell.textContent = `第${day}天`;
+                    dayCell.style.fontWeight = 'bold';
+                    row.appendChild(dayCell);
+                    
+                    // 新学内容单元格
+                    const newContentCell = document.createElement('td');
+                    if (day <= items.length) {
+                        newContentCell.textContent = items[day - 1];
+                        newContentCell.className = 'new-item';
+                    } else {
+                        newContentCell.textContent = '-';
+                    }
+                    row.appendChild(newContentCell);
+                    
+                    // 复习内容单元格
+                    const reviewContentCell = document.createElement('td');
+                    const reviewItems = [];
+                    
+                    // 计算需要复习的内容
+                    for (let i = 1; i < day; i++) {
+                        if (i <= items.length) {
+                            // 检查这一天是否是需要复习的日期
+                            for (const reviewDay of reviewDays) {
+                                if (day === i + reviewDay) {
+                                    reviewItems.push(items[i - 1]);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (reviewItems.length > 0) {
+                        reviewContentCell.textContent = reviewItems.join(', ');
+                        reviewContentCell.className = 'review-item';
+                    } else {
+                        reviewContentCell.textContent = '-';
+                    }
+                    
+                    row.appendChild(reviewContentCell);
+                    
+                    scheduleTable.appendChild(row);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
